@@ -1,10 +1,27 @@
-import 'package:cloud_kitchen/Screen/cartscreen.dart';
-import 'package:cloud_kitchen/constants/iconclass.dart';
-import 'package:cloud_kitchen/constants/textstyle.dart';
-import 'package:cloud_kitchen/model/homemodel.dart';
+import 'package:cloud_kitchen/model/cartmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+
 import '../constants/colors.dart';
+import '../constants/iconclass.dart';
+import '../constants/textstyle.dart';
+import '../model/homemodel.dart';
+import 'cartscreen.dart';
+
+class CartProvider extends ChangeNotifier {
+  final List<MenuItem> _cartItems = [];
+  final List<CartItem> _cartItem = [];
+
+  List<MenuItem> get cartItems => _cartItems;
+
+  void addToCart(CartItem item) {
+    _cartItem.add(item);
+    notifyListeners();
+  }
+
+  void clearCart() {}
+}
 
 class MenuScreen extends StatelessWidget {
   final List<MenuItem> menuItems = [
@@ -48,123 +65,140 @@ class MenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: ColorClass.white,
-      appBar: AppBar(
-        title: Text(
-          'Menu',
-          style: TextStyleClass.manrope700TextStyle(
-            24,
-            ColorClass.black,
+    return ChangeNotifierProvider(
+      create: (_) => CartProvider(),
+      child: Scaffold(
+        backgroundColor: ColorClass.white,
+        appBar: AppBar(
+          title: Text(
+            'Cloud Kitchen',
+            style: TextStyleClass.manrope700TextStyle(24, ColorClass.black),
           ),
-        ),
-        backgroundColor: ColorClass.amberlight,
-        leading: IconButton(
-          icon: Icon(Icons.menu), // This is the drawer icon
-          onPressed: () {
-            // Open the drawer when the icon is tapped
-            Scaffold.of(context).openDrawer();
-          },
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.7,
-            crossAxisSpacing: 5,
-            mainAxisSpacing: 10,
-          ),
-          itemCount: menuItems.length,
-          itemBuilder: (context, index) {
-            final item = menuItems[index];
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: ColorClass.greytext),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  ClipRRect(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(15)),
-                    child: Image.asset(
-                      item.imageUrl,
-                      height: 150,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
+          backgroundColor: ColorClass.amberlight,
+          actions: [
+            IconButton(
+              icon: Icon(Icons.shopping_cart),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CartScreen(),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.name,
-                          style: TextStyleClass.manrope600TextStyle(
-                            14,
-                            ColorClass.black,
-                          ),
-                        ),
-                        SizedBox(height: 5),
-                        Text(
-                          '₹${item.price.toStringAsFixed(0)}',
-                          style: TextStyleClass.manrope600TextStyle(
-                            14,
-                            ColorClass.darkRed,
-                          ),
-                        ),
-                        SizedBox(height: 5),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                item.description,
-                                style: TextStyleClass.manrope600TextStyle(
-                                  12,
-                                  ColorClass.grey,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                );
+              },
+            ),
+          ],
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.7,
+              crossAxisSpacing: 5,
+              mainAxisSpacing: 10,
+            ),
+            itemCount: menuItems.length,
+            itemBuilder: (context, index) {
+              final item = menuItems[index];
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: ColorClass.greytext),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ClipRRect(
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(15)),
+                      child: Image.asset(
+                        item.imageUrl,
+                        height: 150,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name,
+                            style: TextStyleClass.manrope600TextStyle(
+                              14,
+                              ColorClass.black,
                             ),
-                            SizedBox(width: 8),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => CartScreen(
-                                      details: {
-                                        'id': item.id,
-                                        'name': item.name,
-                                        'description': item.description,
-                                        'price': item.price,
-                                        'imageUrl': item.imageUrl,
-                                      },
-                                    ),
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            '₹${item.price.toStringAsFixed(0)}',
+                            style: TextStyleClass.manrope600TextStyle(
+                              14,
+                              ColorClass.darkRed,
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  item.description,
+                                  style: TextStyleClass.manrope600TextStyle(
+                                    12,
+                                    ColorClass.grey,
                                   ),
-                                );
-                              },
-                              child: SvgPicture.asset(
-                                IconClass.AddIcon,
-                                width: 24.0,
-                                height: 24.0,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                              SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () {
+                                 
+                                  final cartProvider =
+                                      Provider.of<CartProvider>(context,
+                                          listen: false);
+
+                                 
+                                  final cartItem = CartItem(
+                                      id: item.id,
+                                      name: item.name,
+                                      description: item.description,
+                                      price: item.price,
+                                      imageUrl: item.imageUrl,
+                                      quantity: 1);
+
+                                  print(
+                                      'DEBUG: Attempting to add item: ${item.name}');
+                                  cartProvider.addToCart(cartItem);
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content:
+                                          Text('${item.name} added to cart'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                },
+                                child: SvgPicture.asset(
+                                  IconClass.AddIcon,
+                                  width: 24.0,
+                                  height: 24.0,
+                                ),
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

@@ -1,4 +1,4 @@
-// lib/model/cart_model.dart
+
 class CartItem {
   final String id;
   final String name;
@@ -16,7 +16,6 @@ class CartItem {
     this.quantity = 1,
   });
 
-  // Convert to and from Map for easy serialization
   Map<String, dynamic> toMap() {
     return {
       'id': id,

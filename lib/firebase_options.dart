@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'cloud-kitchen-2e927.firebasestorage.app',
     measurementId: 'G-N6G5DVW1FG',
   );
+
 }

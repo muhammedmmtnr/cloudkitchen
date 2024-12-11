@@ -1,18 +1,23 @@
 
 class MenuItem {
+  final String id;
   final String name;
   final String imageUrl;
   final double price;
   final String description;
 
-  MenuItem({
+  MenuItem(
+   {
+
+    required this.id, 
     required this.name, 
     required this.imageUrl, 
     required this.price,
-    this.description = '', required String id,
+    this.description = '', 
+    
   });
 
-  get id => null;
+  
 }
 // lib/models/order.dart
 class Order {

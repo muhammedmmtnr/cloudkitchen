@@ -1,185 +1,121 @@
-import 'package:cloud_kitchen/Screen/login/otpverificationscreen.dart';
+import 'package:cloud_kitchen/Screen/bottomnavigation.dart';
 import 'package:cloud_kitchen/constants/colors.dart';
 import 'package:cloud_kitchen/constants/imageclass.dart';
 import 'package:cloud_kitchen/constants/textstyle.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class GoogleSignInScreen extends StatefulWidget {
+  const GoogleSignInScreen({Key? key}) : super(key: key);
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  _GoogleSignInScreenState createState() => _GoogleSignInScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _phoneNumberController = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
+  bool _isSigningIn = false;
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: ColorClass.white,
-      body: Stack(
-        children: [
-          Positioned(
-            top: 550,
-            left: 0,
-            right: 0,
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16.0),
-                height: 400,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: ColorClass.grey),
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(30),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(30.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Welcome',
-                        style: TextStyleClass.manrope700TextStyle(
-                            24, ColorClass.darkStaleGrey),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Text(
-                            'Phone Number',
-                            style: TextStyleClass.manrope500TextStyle(
-                                13, Colors.black),
-                          ),
-                          Text(
-                            '*',
-                            style: TextStyleClass.manrope500TextStyle(
-                                13, ColorClass.darkRed),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 56,
-                        child: TextField(
-                          controller: _phoneNumberController,
-                          keyboardType: TextInputType.phone,
-                          decoration: InputDecoration(
-                            hintText: 'Phone Number',
-                            hintStyle: const TextStyle(fontSize: 13),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: ColorClass.grey),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: ColorClass.grey),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: ColorClass.darkRed),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      GestureDetector(
-                        onTap: () => _sendOtp(context),
-                        child: Container(
-                          height: 45,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: ColorClass.darkStaleGrey.withOpacity(0.4),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'SEND OTP',
-                              style: TextStyleClass.manrope700TextStyle(
-                                  14, ColorClass.white),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 200,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: SizedBox(
-                height: 300,
-                width: 300,
-                child: Image.asset(ImageClass.loginImage),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isSigningIn = true;
+    });
 
-  void _sendOtp(BuildContext context) async {
-    final phoneNumber = _phoneNumberController.text;
-    if (phoneNumber.isNotEmpty && phoneNumber.length == 10) {
-      final formattedPhoneNumber = '+91$phoneNumber'; 
-      try {
-        await _auth.verifyPhoneNumber(
-          phoneNumber: formattedPhoneNumber,
-          verificationCompleted: (PhoneAuthCredential credential) async {
-            await _auth.signInWithCredential(credential);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Phone number verified!')),
-            );
-          },
-          verificationFailed: (FirebaseAuthException e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Verification failed: ${e.message}')),
-            );
-          },
-          codeSent: (String verificationId, int? resendToken) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => OtpVerificationScreen(
-                  phoneNumber: phoneNumber, 
-                ),
-              ),
-            );
-          },
-          codeAutoRetrievalTimeout: (String verificationId) {
-            
-          },
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+      
+        setState(() {
+          _isSigningIn = false;
+        });
+        return;
       }
-    } else {
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please enter a valid 10-digit phone number'),
+          content: Text('Google Sign-In successful!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+     
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => BottomNavBar()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error signing in with Google: $e'),
           backgroundColor: Colors.red,
         ),
       );
+    } finally {
+      setState(() {
+        _isSigningIn = false;
+      });
     }
   }
 
   @override
-  void dispose() {
-    _phoneNumberController.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: ColorClass.bluegrey,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(bottom: 30),
+                child: Image.asset(ImageClass.otpfield), 
+              ),
+              Text(
+                'Sign in with Google',
+                style: TextStyleClass.manrope700TextStyle(
+                  24,
+                  ColorClass.black,
+                ),
+              ),
+              const SizedBox(height: 20),
+              _isSigningIn
+                  ? CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+                    )
+                  : GestureDetector(
+                      onTap: _signInWithGoogle,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                        decoration: BoxDecoration(
+                          color: Colors.blueAccent,
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'SIGN IN WITH GOOGLE',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

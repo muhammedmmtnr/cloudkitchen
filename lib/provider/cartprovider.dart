@@ -13,19 +13,28 @@ class CartProvider extends ChangeNotifier {
     return _items.fold(0, (total, item) => total + (item.price * item.quantity));
   }
 
-  // Add item to cart
-  void addToCart(CartItem item) {
-    // Check if item already exists in cart
-    for (var cartItem in _items) {
-      if (cartItem.id == item.id) {
-        cartItem.quantity++;
-        notifyListeners();
-        return;
-      }
-    }
 
-    // If item doesn't exist, add to cart
-    _items.add(item);
+
+  // Add item to cart
+   void addToCart(CartItem menuItem) {
+      print('DEBUG: Attempting to add item to cart: ${menuItem.name}');
+    
+    final index = _items.indexWhere((item) => item.id == menuItem.id);
+    if (index >= 0) {
+         print('DEBUG: Item already in cart, increasing quantity');
+      _items[index].quantity++;
+    } else {
+       print('DEBUG: New item added to cart');
+      _items.add(CartItem(
+        id: menuItem.id,
+        name: menuItem.name,
+        description: menuItem.description,
+        price: menuItem.price,
+        imageUrl: menuItem.imageUrl,
+        quantity: 1,
+      ));
+    }
+     print('DEBUG: Current cart items count: ${_items.length}');
     notifyListeners();
   }
 
