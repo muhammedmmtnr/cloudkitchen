@@ -1,3 +1,4 @@
+import 'package:cloud_kitchen/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_kitchen/model/ordermodel.dart';
 
@@ -28,8 +29,12 @@ class _OrderScreenState extends State<OrderScreen> {
                 style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
             )
-          : ListView.builder(
+          : ListView.separated(
               itemCount: widget.confirmedOrders.length,
+              separatorBuilder: (context, index) => const Divider(
+                thickness: 1,
+                color: ColorClass.greytext,
+              ),
               itemBuilder: (context, index) {
                 final order = widget.confirmedOrders[index];
                 return Container(
@@ -45,7 +50,7 @@ class _OrderScreenState extends State<OrderScreen> {
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('₹${order.menuItem.price}'),
+                        Text('₹${order.menuItem.price.toStringAsFixed(2)}'),
                         Text('Qty: ${order.quantity}'),
                       ],
                     ),
