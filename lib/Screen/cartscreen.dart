@@ -1,5 +1,9 @@
+import 'package:cloud_kitchen/Screen/orderscreen.dart';
 import 'package:cloud_kitchen/model/cartmodel.dart';
+import 'package:cloud_kitchen/model/homemodel.dart';
+import 'package:cloud_kitchen/model/ordermodel.dart';
 import 'package:cloud_kitchen/provider/cartprovider.dart';
+import 'package:cloud_kitchen/provider/orderprovider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors.dart';
@@ -74,7 +78,8 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                         itemBuilder: (context, index) {
                           final item = cartProvider.items[index];
-                            print('DEBUG: Displaying item: ${item.name}, Quantity: ${item.quantity}');
+                          print(
+                              'DEBUG: Displaying item: ${item.name}, Quantity: ${item.quantity}');
                           return Container(
                             margin: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 5),
@@ -155,38 +160,75 @@ class _CartScreenState extends State<CartScreen> {
                         ColorClass.black,
                       ),
                     ),
-                    GestureDetector(
-                      onTap: cartProvider.items.isEmpty
-                          ? null
-                          : () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Checkout successfully implemented!'),
-                                  backgroundColor: ColorClass.amberlight,
-                                ),
-                              );
-                            },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 50, vertical: 15),
-                        decoration: BoxDecoration(
-                          color: cartProvider.items.isEmpty
-                              ? ColorClass.greytext
-                              : ColorClass.amberlight,
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Center(
-                          child: Text(
-                            'Checkout',
-                            style: TextStyle(
+                    Consumer<OrderProvider>(
+                      builder: (context,orderProvider,child) {
+                        return GestureDetector(
+                          onTap: cartProvider.items.isEmpty
+                              ? null
+                              : (){
+          // Capture current cart items as orders
+          final cartItems = cartProvider.items;
+
+          // Convert cart items to OrderItem objects
+          final orderItems = cartItems.map((item) {
+            return OrderItem(
+              menuItem: MenuItem(
+                id: item.id,
+                name: item.name,
+                imageUrl: item.imageUrl,
+                price: item.price,
+              ), // Create MenuItem
+              quantity: item.quantity,
+            );
+          }).toList();
+
+          // Add the order to the OrderProvider
+          orderProvider.addOrder(orderItems);
+
+          // Clear the cart after confirmation
+          cartProvider.clearCart();
+
+          // Navigate to OrderScreen with the confirmed orders
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OrderScreen(
+                confirmedOrders: orderItems, // Pass confirmed orders
+              ),
+            ),
+          );
+
+          // Show confirmation snack bar
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Order confirmed successfully!'),
+              backgroundColor: ColorClass.amberlight,
+            ),
+          );
+        },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 50, vertical: 15),
+                            decoration: BoxDecoration(
                               color: cartProvider.items.isEmpty
-                                  ? Colors.black45
-                                  : Colors.white,
+                                  ? ColorClass.greytext
+                                  : ColorClass.amberlight,
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Confirm Order',
+                                style: TextStyle(
+                                  color: cartProvider.items.isEmpty
+                                      ? Colors.black45
+                                      : Colors.white,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                    ),
+                        );
+                      }
+                    )
                   ],
                 ),
               ),

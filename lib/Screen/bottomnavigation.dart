@@ -16,7 +16,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
   final List<Widget> _screens = [
     MenuScreen(),
     CartScreen(),
-    OrderScreen(),
+    OrderScreen (confirmedOrders: [],),
   ];
 
   void _onItemTapped(int index) {

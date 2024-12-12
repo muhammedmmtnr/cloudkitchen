@@ -8,14 +8,14 @@ class CartProvider extends ChangeNotifier {
 
   List<CartItem> get items => _items;
 
-  // Get total cart value
+  
   double get totalAmount {
     return _items.fold(0, (total, item) => total + (item.price * item.quantity));
   }
 
 
 
-  // Add item to cart
+  
    void addToCart(CartItem menuItem) {
       print('DEBUG: Attempting to add item to cart: ${menuItem.name}');
     
@@ -38,13 +38,13 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Remove item from cart
+  
   void removeFromCart(String itemId) {
     _items.removeWhere((item) => item.id == itemId);
     notifyListeners();
   }
 
-  // Increase item quantity
+  
   void increaseQuantity(String itemId) {
     for (var item in _items) {
       if (item.id == itemId) {
@@ -55,7 +55,7 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  // Decrease item quantity
+ 
   void decreaseQuantity(String itemId) {
     for (var i = 0; i < _items.length; i++) {
       if (_items[i].id == itemId) {
@@ -70,7 +70,7 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  // Clear entire cart
+  
   void clearCart() {
     _items.clear();
     notifyListeners();
