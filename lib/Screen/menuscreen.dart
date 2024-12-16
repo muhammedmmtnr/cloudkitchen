@@ -1,5 +1,6 @@
 import 'package:cloud_kitchen/model/cartmodel.dart';
 import 'package:cloud_kitchen/provider/cartprovider.dart';
+import 'package:cloud_kitchen/provider/menuprovider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -7,49 +8,21 @@ import 'package:provider/provider.dart';
 import '../constants/colors.dart';
 import '../constants/iconclass.dart';
 import '../constants/textstyle.dart';
-import '../model/homemodel.dart';
 import 'cartscreen.dart';
 
+class MenuScreen extends StatefulWidget {
+  @override
+  _MenuScreenState createState() => _MenuScreenState();
+}
 
-class MenuScreen extends StatelessWidget {
-  final List<MenuItem> menuItems = [
-    MenuItem(
-        id: '1',
-        name: 'Burger',
-        imageUrl: 'assets/images/burger.png',
-        price: 150.0,
-        description: 'Juicy beef burger'),
-    MenuItem(
-        id: '2',
-        name: 'Pizza',
-        imageUrl: 'assets/images/pizza.png',
-        price: 250.0,
-        description: 'Margherita pizza'),
-    MenuItem(
-        id: '3',
-        name: 'Pasta',
-        imageUrl: 'assets/images/pasta.png',
-        price: 200.0,
-        description: 'Creamy alfredo pasta'),
-    MenuItem(
-        id: '4',
-        name: 'Salad',
-        imageUrl: 'assets/images/salad.png',
-        price: 120.0,
-        description: 'Fresh garden salad'),
-    MenuItem(
-        id: '5',
-        name: 'Sandwich',
-        imageUrl: 'assets/images/sandwich.png',
-        price: 100.0,
-        description: 'Classic club sandwich'),
-    MenuItem(
-        id: '6',
-        name: 'Smoothie',
-        imageUrl: 'assets/images/smoothie.png',
-        price: 80.0,
-        description: 'Fresh fruit smoothie'),
-  ];
+class _MenuScreenState extends State<MenuScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch the menu items from Firestore when the screen is initialized
+    Future.microtask(() =>
+        Provider.of<MenuProvider>(context, listen: false).fetchMenu());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,116 +48,149 @@ class MenuScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.7,
-            crossAxisSpacing: 5,
-            mainAxisSpacing: 10,
-          ),
-          itemCount: menuItems.length,
-          itemBuilder: (context, index) {
-            final item = menuItems[index];
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: ColorClass.greytext),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  ClipRRect(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(15)),
-                    child: Image.asset(
-                      item.imageUrl,
-                      height: 150,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.name,
-                          style: TextStyleClass.manrope600TextStyle(
-                            14,
-                            ColorClass.black,
-                          ),
-                        ),
-                        SizedBox(height: 5),
-                        Text(
-                          '₹${item.price.toStringAsFixed(0)}',
-                          style: TextStyleClass.manrope600TextStyle(
-                            14,
-                            ColorClass.darkRed,
-                          ),
-                        ),
-                        SizedBox(height: 5),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                item.description,
-                                style: TextStyleClass.manrope600TextStyle(
-                                  12,
-                                  ColorClass.grey,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            GestureDetector(
-                              onTap: () {
-                               
-                                final cartProvider =
-                                    Provider.of<CartProvider>(context,
-                                        listen: false);
-    
-                               
-                                final cartItem = CartItem(
-                                    id: item.id,
-                                    name: item.name,
-                                    description: item.description,
-                                    price: item.price,
-                                    imageUrl: item.imageUrl,
-                                    quantity: 1);
-    
-                                print(
-                                    'DEBUG: Attempting to add item: ${item.name}');
-                                cartProvider.addToCart(cartItem);
-    
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content:
-                                        Text('${item.name} added to cart'),
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              },
-                              child: SvgPicture.asset(
-                                IconClass.AddIcon,
-                                width: 24.0,
-                                height: 24.0,
-                              ),
-                            )
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+      body: Consumer<MenuProvider>(
+        builder: (context, menuProvider, _) {
+          if (menuProvider.isLoading) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (menuProvider.menuItems.isEmpty) {
+            return Center(
+              child: Text(
+                'No menu items available.',
+                style: TextStyleClass.manrope600TextStyle(16, ColorClass.grey),
               ),
             );
-          },
-        ),
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.7,
+                crossAxisSpacing: 5,
+                mainAxisSpacing: 10,
+              ),
+              itemCount: menuProvider.menuItems.length,
+              itemBuilder: (context, index) {
+                final item = menuProvider.menuItems[index];
+                return MenuCo(menuItem: item);
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class MenuCo extends StatelessWidget {
+  final MenuItem menuItem;
+
+  const MenuCo({required this.menuItem});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: ColorClass.greytext),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+            child: Image.network(
+              menuItem.imageUrl,
+              height: 150,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            (loadingProgress.expectedTotalBytes ?? 1)
+                        : null,
+                  ),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) =>
+                  Icon(Icons.error, size: 50, color: ColorClass.grey),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  menuItem.name,
+                  style:
+                      TextStyleClass.manrope600TextStyle(14, ColorClass.black),
+                ),
+                SizedBox(height: 5),
+                Text(
+                  '₹${menuItem.price.toStringAsFixed(0)}',
+                  style: TextStyleClass.manrope600TextStyle(
+                    14,
+                    ColorClass.darkRed,
+                  ),
+                ),
+                SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        menuItem.description,
+                        style: TextStyleClass.manrope600TextStyle(
+                          12,
+                          ColorClass.grey,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () {
+                        final cartProvider =
+                            Provider.of<CartProvider>(context, listen: false);
+
+                        final cartItem = CartItem(
+                          id: menuItem.id,
+                          name: menuItem.name,
+                          description: menuItem.description,
+                          price: menuItem.price,
+                          imageUrl: menuItem.imageUrl,
+                          quantity: 1,
+                        );
+
+                        cartProvider.addToCart(cartItem);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${menuItem.name} added to cart'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      child: SvgPicture.asset(
+                        IconClass.AddIcon,
+                        width: 24.0,
+                        height: 24.0,
+                      ),
+                    )
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

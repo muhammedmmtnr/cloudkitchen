@@ -16,7 +16,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
   final List<Widget> _screens = [
     MenuScreen(),
     CartScreen(),
-    OrderScreen (confirmedOrders: [],),
+    OrderScreen (confirmedOrders: [], ),
   ];
 
   void _onItemTapped(int index) {
@@ -24,6 +24,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
       _selectedIndex = index;
     });
   }
+  
 
   @override
   Widget build(BuildContext context) {

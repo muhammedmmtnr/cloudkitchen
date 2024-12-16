@@ -1,4 +1,3 @@
-
 import 'package:cloud_kitchen/model/homemodel.dart';
 
 class Order {
@@ -18,13 +17,19 @@ class Order {
 }
 
 class OrderItem {
+  final String orderId; // Fixed: added a proper orderId field
   final MenuItem menuItem;
   final int quantity;
 
   OrderItem({
+    required this.orderId, // Set during initialization
     required this.menuItem,
     required this.quantity,
   });
+
+  static fromJson(orderJson) {}
+
+  toJson() {}
 }
 
 enum OrderStatus {

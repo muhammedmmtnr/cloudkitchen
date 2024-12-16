@@ -166,10 +166,10 @@ class _CartScreenState extends State<CartScreen> {
                           onTap: cartProvider.items.isEmpty
                               ? null
                               : (){
-          // Capture current cart items as orders
+          
           final cartItems = cartProvider.items;
 
-          // Convert cart items to OrderItem objects
+          
           final orderItems = cartItems.map((item) {
             return OrderItem(
               menuItem: MenuItem(
@@ -177,12 +177,12 @@ class _CartScreenState extends State<CartScreen> {
                 name: item.name,
                 imageUrl: item.imageUrl,
                 price: item.price,
-              ), // Create MenuItem
-              quantity: item.quantity,
+              ), 
+              quantity: item.quantity, orderId: '',
             );
           }).toList();
 
-          // Add the order to the OrderProvider
+          
           orderProvider.addOrder(orderItems);
 
           // Clear the cart after confirmation
@@ -193,7 +193,7 @@ class _CartScreenState extends State<CartScreen> {
             context,
             MaterialPageRoute(
               builder: (context) => OrderScreen(
-                confirmedOrders: orderItems, // Pass confirmed orders
+                confirmedOrders: orderItems,   // Pass confirmed orders
               ),
             ),
           );

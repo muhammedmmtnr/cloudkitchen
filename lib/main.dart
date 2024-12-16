@@ -1,12 +1,14 @@
 import 'package:cloud_kitchen/Screen/bottomnavigation.dart';
 import 'package:cloud_kitchen/Screen/login/loginscreen.dart';
 import 'package:cloud_kitchen/provider/cartprovider.dart';
+import 'package:cloud_kitchen/provider/menuprovider.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'provider/orderprovider.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +25,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => MenuProvider()),
       ],
       child: MaterialApp(
         title: 'Flutter Demo',
