@@ -1,10 +1,10 @@
 import 'package:cloud_kitchen/model/cartmodel.dart';
-import 'package:cloud_kitchen/provider/cartprovider.dart';
-import 'package:cloud_kitchen/provider/menuprovider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
+import '../provider/menuprovider.dart';
+import '../provider/cartprovider.dart';
 import '../constants/colors.dart';
 import '../constants/iconclass.dart';
 import '../constants/textstyle.dart';
@@ -19,9 +19,9 @@ class _MenuScreenState extends State<MenuScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch the menu items from Firestore when the screen is initialized
-    Future.microtask(() =>
-        Provider.of<MenuProvider>(context, listen: false).fetchMenu());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<MenuProvider>(context, listen: false).fetchMenuItems();
+    });
   }
 
   @override
@@ -40,9 +40,7 @@ class _MenuScreenState extends State<MenuScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => CartScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => CartScreen()),
               );
             },
           ),
@@ -67,7 +65,7 @@ class _MenuScreenState extends State<MenuScreen> {
             padding: const EdgeInsets.all(8.0),
             child: GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+                crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
                 childAspectRatio: 0.7,
                 crossAxisSpacing: 5,
                 mainAxisSpacing: 10,
@@ -75,7 +73,7 @@ class _MenuScreenState extends State<MenuScreen> {
               itemCount: menuProvider.menuItems.length,
               itemBuilder: (context, index) {
                 final item = menuProvider.menuItems[index];
-                return MenuCo(menuItem: item);
+                return MenuContanier (menuItem: item);
               },
             ),
           );
@@ -85,10 +83,10 @@ class _MenuScreenState extends State<MenuScreen> {
   }
 }
 
-class MenuCo extends StatelessWidget {
+class MenuContanier  extends StatelessWidget {
   final MenuItem menuItem;
 
-  const MenuCo({required this.menuItem});
+  const MenuContanier ({required this.menuItem});
 
   @override
   Widget build(BuildContext context) {

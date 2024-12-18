@@ -1,34 +1,36 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class MenuProvider extends ChangeNotifier {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
+class MenuProvider with ChangeNotifier {
   List<MenuItem> _menuItems = [];
-  bool _isLoading = true;
+  bool _isLoading = false;
+
   List<MenuItem> get menuItems => _menuItems;
   bool get isLoading => _isLoading;
 
- 
-  Future<void> fetchMenu() async {
-    try { 
-      QuerySnapshot snapshot = await _firestore.collection('menu').get();
-      _menuItems = snapshot.docs
-          .map((doc) => MenuItem.fromFirestore(doc.data() as Map<String, dynamic>))
-          .toList();
+  Future<void> fetchMenuItems() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final QuerySnapshot querySnapshot = 
+        await FirebaseFirestore.instance.collection('menu').get();
+      
+      _menuItems = querySnapshot.docs.map((doc) {
+        return MenuItem.fromFirestore(
+          doc.data() as Map<String, dynamic>
+        );
+      }).toList();
 
       _isLoading = false;
       notifyListeners();
-    } catch (error) {
-      print("Error fetching menu: $error");
+    } catch (e) {
+      print('Error fetching menu items: $e');
       _isLoading = false;
       notifyListeners();
     }
-
   }
 }
-
-
 class MenuItem {
   final String id;
   final String name;
@@ -36,8 +38,7 @@ class MenuItem {
   final String imageUrl;
   final String description;
 
-  MenuItem(
-     {
+  MenuItem({
     required this.id,
     required this.name,
     required this.price,
@@ -45,14 +46,13 @@ class MenuItem {
     required this.description,
   });
 
- 
   factory MenuItem.fromFirestore(Map<String, dynamic> data) {
     return MenuItem(
       id: data['id'] ?? '',
       name: data['name'] ?? '',
       price: (data['price'] ?? 0).toDouble(),
       imageUrl: data['imageUrl'] ?? '',
-      description:data['description'] ?? '',
+      description: data['description'] ?? '',
     );
   }
 }
